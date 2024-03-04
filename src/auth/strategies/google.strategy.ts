@@ -24,17 +24,24 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    const { id, name, email,password } = profile;
+    const { id, name, email, password } = profile;
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        id,
-        email,
-        name,
-        password
-      }
-    });
+    const oldUser = await this.prisma.user.findUnique({where: {email}})
 
-    done(null, newUser);
+    if(!oldUser){
+      const newUser = await this.prisma.user.create({
+        data: {
+          id,
+          email,
+          name,
+          password
+        }
+      });
+
+      done(null, newUser);
+    }
+
+    return { 'access_token': _accessToken}
+
   }
 }

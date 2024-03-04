@@ -27,7 +27,21 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload) }
   }
 
-  async signIn(user: Prisma.$UserPayload){
+  async signIn(data: {email: string, password: string}){
+    const user = await  this.prisma.user.findUnique({where: {email: data.email}})
 
+    if(!user){
+      throw new HttpException('This user not register', HttpStatus.BAD_REQUEST)
+    }
+
+    const checkPassword = await bcrypt.compare(data.password, user.password)
+
+    if(!checkPassword){
+      throw new HttpException('Password doesn\`t match', HttpStatus.FORBIDDEN)
+    }
+
+    const payload = { username: user.name, id: user.id, email: user.email };
+
+    return { access_token: this.jwtService.sign(payload)}
   }
 }
