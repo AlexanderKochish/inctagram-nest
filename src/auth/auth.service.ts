@@ -14,7 +14,7 @@ export class AuthService {
   async signUp(user: Prisma.UserCreateInput) {
     const findUser = await this.prisma.user.findUnique({where: { email: user.email}})
     if(findUser){
-      throw new HttpException('This user are exists', HttpStatus.BAD_REQUEST)
+      throw new HttpException('This user already exists', HttpStatus.BAD_REQUEST)
     }
     const hashPassword = await bcrypt.hash(user.password, 5)
     const newUser = {
@@ -25,5 +25,9 @@ export class AuthService {
     const person = await this.prisma.user.create({ data: newUser });
     const payload = { username: person.name, id: person.id, email: person.email };
     return { access_token: this.jwtService.sign(payload) }
+  }
+
+  async signIn(user: Prisma.$UserPayload){
+
   }
 }
